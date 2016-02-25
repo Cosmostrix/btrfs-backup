@@ -1,0 +1,3 @@
+name=archive
+pub=/var/tmp/archiveroot
+sub=(notebook)

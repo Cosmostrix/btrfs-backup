@@ -1,0 +1,7 @@
+REPO_PATH=(/var/tmp/backup /var/tmp/backup1 /var/tmp/backup2 /var/tmp/dummy)
+mkdir -p /var/tmp/backup{,1,2}
+cp repoconfig /var/tmp/backup/.repoconfig
+cp repoconfig1 /var/tmp/backup1/.repoconfig
+cp repoconfig2 /var/tmp/backup2/.repoconfig
+btrfs subvolume create /var/tmp/notebookroot||true
+btrfs subvolume create /var/tmp/archiveroot|| :
