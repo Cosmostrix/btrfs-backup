@@ -41,7 +41,7 @@ function detect_parent() {
 		# mtime && subvol list 使った方が確実？
 		prev_id=$(basename $prev_shot)
 		if [ -d $sub_repo/$pub_name/$prev_id ]; then
-			OPTS="-p$prev_shot"
+			OPTS="-c$prev_shot"
 			echo "増分バックアップします: $prev_id"
 		else
 			echo "警告: $prev_shot に対応する転送先のバックアップが見つかりませんでした"
@@ -95,7 +95,7 @@ function main() {
 		repo=$x source $x/.repoconfig
 		pub_name=$name pub_src=${pub:-}
 		echo ">>> Sync Repository: $pub_name [pub $pub_src] [sub ${sub:-()}]"
-		time=test$(date "+%y%m%d-%H%M%S")
+		time=$(date "+%y%m%d-%H%M%S")
 		if [ ${+pub} ]; then
 			for y in $REPO_PATH; do
 				unset name pub sub
