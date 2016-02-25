@@ -15,7 +15,7 @@ function create_snapshot() {
 	local snapshot_dir=$1 src_subvolume=$2 time=$3
 	local snapshot=$snapshot_dir/$time
 	[ -d $snapshot ] && return
-	echo "(1/3) バックアップ対象のスナップショットを作成します"
+	echo "(1/4) バックアップ対象のスナップショットを作成します"
 	# echo "\tsnapshot $src_subvolume -> $snapshot"
 	mkdir -p $snapshot_dir
 	btrfs subvolume snapshot -r $src_subvolume $snapshot
@@ -56,32 +56,36 @@ function confirm_fullbackup() {
 
 function btrfs_sync() {
 	local opts=$1 pub_repo=$2 pub_name=$3 sub_repo=$4 sub_name=$5 time=$6
-	echo "(2/3) バックアップ転送"
+	echo "(2/4) バックアップ転送"
 	mkdir -p $sub_repo/$pub_name
 	echo "btrfs send $opts $pub_repo/$pub_name/$time | btrfs receive -vv $sub_repo/$pub_name"
 	btrfs send $opts $pub_repo/$pub_name/$time | btrfs receive -vv $sub_repo/$pub_name
 
-	echo "(2.5/3) 手元のバックアップ情報を更新"
+	echo "(3/4) 手元のバックアップ情報を更新"
 	if subvol=`reln $time $pub_repo/$pub_name/$sub_name`; then
-		echo \t$ btrfs subvolume delete $subvol
-		confirm_delete $subvol && btrfs subvolume delete $subvol
+		confirm_delete $subvol $pub_repo $sub_repo && \
+		btrfs subvolume delete $subvol
 	fi
 
-	echo "(3/3) バックアップ先の情報を更新"
+	echo "(3/4) バックアップ先の情報を更新"
 	if subvol=`reln $time $sub_repo/$pub_name/latest`; then
-		echo \t$ btrfs subvolume delete $subvol
-		confirm_delete $subvol && btrfs subvolume delete $subvol
+		confirm_delete $subvol $pub_repo $sub_repo && \
+		btrfs subvolume delete $subvol
 	fi
 }
 
 function confirm_delete() {
-	echo "以前のバックアップ $1 を削除しますか？(y/N)"
-	echo "注意: "
+	local symlinks=(${(@f)"$(readlink -e {$2,$3}/*/*(@) || true)"})
+	echo "現在参照されているバックアップの一覧: $symlinks"
+	(( ${symlinks[(I)$(readlink -e $1)]} )) && \
+		{ echo "参照があるため削除不可: $1"; return 1 }
+	echo "削除可能な以前のバックアップ $1 を削除しますか？(y/N)"
+	echo "Note: btrfs subvolume delete $1"
 	read -q
 }
 
 function main() {
-	source btrfs_backup.conf_
+	source btrfs_backup.conf
 	#echo Search Path: $REPO_PATH
 	REPO_PATH=(${(@f)"$(readlink -e $REPO_PATH || true)"})
 	echo ">>> Repositories Found: $REPO_PATH"
