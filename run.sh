@@ -1,5 +1,5 @@
 #!/bin/zsh -p
-
+btrfs version
 set -ue -o pipefail
 
 function pubsubsync() {
@@ -41,7 +41,7 @@ function detect_parent() {
 		# mtime && subvol list 使った方が確実？
 		prev_id=$(basename $prev_shot)
 		if [ -d $sub_repo/$pub_name/$prev_id ]; then
-			OPTS="-c$prev_shot"
+			OPTS="-p$prev_shot"
 			echo "増分バックアップします: $prev_id"
 		else
 			echo "警告: $prev_shot に対応する転送先のバックアップが見つかりませんでした"
